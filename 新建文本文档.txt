@@ -1,0 +1,71 @@
+create or replace procedure myprocedure2(  hh in number)
+IS
+       the_no number(3):=hh;
+       cursor mycur(hhh number) is(select * from student a where a.no=hhh);
+       myrec mycur%rowtype;
+       
+       begin
+           open mycur(the_no);
+               fetch mycur into myrec;
+               if mycur%found then
+                   DBMS_OUTPUT.PUT_LINE('HELLO');
+                   delete from student a where a.no=the_no);
+                   commit;
+               end if;
+           close mycur;
+       end myprocedure2;
+       
+begin           
+    myprocedure2(5);
+end;
+
+
+SET SERVEROUTPUT ON;
+declare 
+    cursor mycur( hh number) is( select * from student a where a.no=hh);
+    myrec mycur%rowtype;
+    begin
+        open mycur(5);
+        fetch mycur into myrec;
+        DBMS_OUTPUT.PUT_LINE('delete :'||myrec.no||'----'||myrec.name);
+        close mycur;
+    end;
+                       
+
+CREATE OR REPLACE PROCEDURE MYPROCEDURE1 ( hh in number)
+IS
+       the_no number(4):=hh;
+       cursor mycur(hhh number) is(select * from student a where a.no=hhh);
+       myrec mycur%rowtype;
+
+BEGIN 
+    open mycur(the_no);
+               fetch mycur into myrec;
+               if mycur%found then
+                   DBMS_OUTPUT.PUT_LINE('HELLO');
+                   delete from student a where a.no=the_no);
+                   commit;
+               end if;
+           close mycur;
+
+END MYPROCEDURE1;
+
+BEGIN
+ MYPROCEDURE1(3);
+END;
+
+ create or replace Procedure PRO11(
+       n1 in  number
+)  is
+   begin
+      DBMS_OUTPUT.PUT_LINE('存储过程调用成功');
+   end PRO11;
+
+commit;
+
+declare
+       s number(3):=5;
+       
+begin
+       PRO11(4);
+end;

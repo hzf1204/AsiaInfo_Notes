@@ -1,0 +1,21 @@
+DECLARE       
+         CURSOR mycur2 IS    
+         SELECT * from SA_OFFICE_BAK_LYF a; 
+         MyRecord mycur2%rowtype;
+         yushu number(3);
+         whereami number(5):=0;
+         BEGIN   
+            open mycur2;
+                 if mycur2%isopen then 
+                   loop                             
+                       whereami:=whereami+1;                          
+                       fetch mycur2 into myrecord;
+                       exit when mycur2%notfound;
+                       yushu:=mod(mycur2%rowcount,50);
+                       DBMS_OUTPUT.PUT_LINE('这是第'||whereami||'条.   更新: '||MyRecord.headnum||' 的REGIONCODE为:  '||yushu);
+                       update SA_OFFICE_BAK_LYF  set REGION_CODE=yushu  where id=myrecord.id;
+                       commit;
+                   end loop;
+                  end if;
+              close mycur2;
+         END; 
