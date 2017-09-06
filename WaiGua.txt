@@ -1,0 +1,46 @@
+package com.asiainfo.lyf.redis;
+
+import org.json.JSONObject;
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisPoolConfig;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * Created by LYF on 2017/8/31.
+ */
+public class Test2 {
+    public static void main(String args[]) throws Exception, IOException {
+        Set set = new HashSet();
+        String key = args[0];
+        String password = args[1];
+        for (int i = 2; i < args.length; i++) {
+            String[] IpAndPort = args[i].split(":");
+            set.add(new HostAndPort(IpAndPort[0], Integer.valueOf(IpAndPort[1])));
+        }
+        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        JedisCluster jedisCluster = null;
+        jedisCluster = new JedisCluster(set, 10000, 10000, 10, password, jedisPoolConfig);
+        List list = null;
+        while (true) {
+            Long len = jedisCluster.llen(key);
+            if (len == 0l) {
+                SimpleDateFormat format = new SimpleDateFormat("ss mm HH dd MM ? yyyy");
+                String date = format.format(new Date());
+                Map map = new HashMap();
+                map.put("NEXT", date);
+                map.put("JOB_ID", 4);
+                String json = JSONObject.valueToString(map);
+                jedisCluster.lpush(key, json);
+                map.put("JOB_ID", 1);
+                json = JSONObject.valueToString(map);
+                jedisCluster.lpush(key, json);
+            }
+            Thread.sleep(5000);
+            list = null;
+        }
+    }
+
+}
