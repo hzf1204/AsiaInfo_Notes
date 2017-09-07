@@ -149,6 +149,7 @@ export PATH="$PATH:$JAVA_HOME/bin"
 export JRE_HOME="$JAVA_HOME/jre"
 export CLASSPATH=".:$JAVA_HOME/lib:$JAVA_HOME/lib"
 
+修改ip配置文件 的文件所处的位置:   /etc/sysconfig/networkd-scripts/
 
 ***********************************    	  Linux根目录结构 	  ****************************************************
  Linux系统目录结构
@@ -246,24 +247,42 @@ u
 
 
 
+####  ssh 口令远程登录
+ssh root@192.168.85.2    -p  222       以root身份登录85.2主机  SSH的默认端口是22，也就是说，你的登录请求会送进远程主机的22端口。使用p参数，可以修改这个端口   
+1.第一次登录远程主机的时候 会有如下提示:
 
+The authenticity of host '192.168.85.3 (192.168.85.3)' can't be established.
+ECDSA key fingerprint is a6:dc:fe:45:43:a6:63:2b:94:f4:b3:f1:de:1b:f5:f9.
+Are you sure you want to continue connecting (yes/no)?  
 
+这段话的意思是，无法确认host主机的真实性，只知道它的公钥指纹，问你还想继续连接吗？
+所谓"公钥指纹"，是指公钥长度较长（这里采用RSA算法，长达1024位），很难比对，所以对其进行MD5计算，将它变成一个128位的指纹。上例中是98:2e:d7:e0:de:9f:ac:67:28:c2:42:2d:37:16:58:4d，再进行比较，就容易多了。
+很自然的一个问题就是，用户怎么知道远程主机的公钥指纹应该是多少？回答是没有好办法，远程主机必须在自己的网站上贴出公钥指纹，以便用户自行核对。
 
+2.假定经过风险衡量以后，用户决定接受这个远程主机的公钥。
+Are you sure you want to continue connecting (yes/no)? yes 
 
+3.系统会出现一句提示，表示host主机已经得到认可。
+Warning: Permanently added '192.168.85.3' (ECDSA) to the list of known hosts.
 
+4.接下来会提示你输入远程主机的用户密码:
+root@192.168.85.3's password:       -----输入之后就顺利登录了远程主机
 
+当远程主机的公钥被接受以后，它就会被保存在文件$HOME/.ssh/known_hosts之中。下次再连接这台主机，系统就会认出它的公钥已经保存在本地了，从而跳过警告部分，直接提示输入密码。
+每个SSH用户都有自己的known_hosts文件，此外系统也有一个这样的文件，通常是/etc/ssh/ssh_known_hosts，保存一些对所有用户都可信赖的远程主机的公钥。
 
+###  ssh 公钥登录
 
+使用密码登录，每次都必须输入密码，非常麻烦。好在SSH还提供了公钥登录，可以省去输入密码的步骤。
+所谓"公钥登录"，原理很简单，就是用户将自己的公钥储存在远程主机上。登录的时候，远程主机会向用户发送一段随机字符串，用户用自己的私钥加密后，再发回来。
+远程主机用事先储存的公钥进行解密，如果成功，就证明用户是可信的，直接允许登录shell，不再要求密码。
 
+1这种方法要求用户必须提供自己的公钥。如果没有现成的，可以直接用ssh-keygen生成一个：
+ssh-keygen -t rsa        ---期间提示什么可以都不用输入  直接回车跳过
 
-
-
-
-
-
-
-
-
+运行结束以后，在$HOME/.ssh/目录下，会新生成两个文件：id_rsa.pub和id_rsa。前者是你的公钥，后者是你的私钥。
+2这时再输入下面的命令，将公钥传送到远程主机host上面：
+ssh-copy-id user@host
 
 
 
