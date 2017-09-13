@@ -1,0 +1,6 @@
+JAVAC的用法
+1  -d	 指定编译好的文件存放的位置
+	javac  HelloWorld.java  -d   F:\      ----编译并把生成的class文件放到F:\ 根目录
+2  -cp   (等价于 -classpath)  指定CLASSPATH参数 也可以指定一个或多个jar文件  多个jar之间用;(分号)分隔开(dos下)    linux下用: 冒号分隔开
+	
+3  -verbose  查看编译的整个过程信息 
