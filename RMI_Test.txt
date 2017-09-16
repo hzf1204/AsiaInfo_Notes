@@ -1,0 +1,145 @@
+********************************  java RMI**********************************
+java RMI 实现远程调用 的一个简单例子如下
+
+服务端的代码:
+package com.ai.test;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+/**
+ * Created by LYF on 2017/9/15.
+ */
+public class Test {
+    public static void main(String args[]) throws NamingException {
+
+        try {
+            String RMIPortNum ="4853";
+            startRegistry(4853);
+            ISay helloObj = new SayImpl();
+            String url = "rmi://localhost:"+RMIPortNum+"/hello";
+            Naming.rebind(url, helloObj);
+            System.out.println("服务器注册完毕。注册表当前包含了以下内容：");
+            listRegistry(url);
+            System.out.println("Hello服务器已经就绪!");
+            System.in.read();
+        }
+        catch (Exception re) {
+            System.out.println("HelloServer.main出现异常"+re);
+        }
+
+
+    }
+    private static void startRegistry(int RMIPortNum)
+            throws RemoteException {
+        try {
+            Registry registry = LocateRegistry.getRegistry("127.0.0.1",RMIPortNum);
+            registry.list();
+        }
+        catch (RemoteException e) {
+            System.out.println("RMI注册表无法在以下端口定位："+RMIPortNum);
+            Registry registry = LocateRegistry.createRegistry(RMIPortNum);
+            System.out.println("RMI注册表在以下端口创建："+RMIPortNum);
+        }
+    }
+    public static void listRegistry(String registryURL)
+            throws RemoteException,
+            MalformedURLException {
+
+        String[] names = Naming.list(registryURL);
+        for(int i=0; i < names.length; i++)
+            System.out.println(names[i]);
+    }
+
+}
+
+
+
+接口类  该接口需要 继承Remote接口   声明的方法需要抛出  Remote 异常
+
+
+package com.ai.test;
+
+import java.io.Serializable;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+/**
+ * Created by LYF on 2017/9/15.
+ */
+public interface ISay extends Remote,Serializable{
+    public String sayWhat(String str) throws RemoteException;
+}
+
+
+接口实现类   
+
+###################################
+注意:   
+	1.如果继承了 UnicastRemoteObject 类 ,则此类的对象叫做远程对象，我们lookup出来的对象，只是该远程对象的存根(Stub)对象,而远程对象永远在远方 
+客户端每一次的方法调用，最后都是仅有的那一个远程对象的方法调用。
+
+
+	2.如果不继承 UnicastRemoteObject 类,对象同样可以bind到Registry，但lookup出来了对象却是远程对象
+经过序列化，然后到客户端反序列化出来的新的对象，后续的方法调用与远程对象再无关系。
+	3.如果继承了  UnicastRemoteObject类,  服务端启动后 会开启一个监听的线程,所以服务端不会直接运行结束退出进程,如果不继承 UnicastRemoteObject类,则需要写方法阻塞进程,
+不然进程运行结束退出进程.
+	
+
+package com.ai.test;
+
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+/**
+ * Created by LYF on 2017/9/15.
+ */
+public class SayImpl  extends UnicastRemoteObject implements ISay {
+
+    protected SayImpl() throws RemoteException {
+    }
+
+    @Override
+    public String sayWhat(String str) throws RemoteException {
+        System.out.println("服务端接受客户端的远程调用 :"+str);
+        return str+"from   远程调用";
+    }
+}
+
+
+
+客户端调用类:    另外注意  ,客户端需要有接口,  但不需要实现类.  这样才可以顺利的RMI调用
+
+package com.ai.test;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.rmi.Naming;
+
+/**
+ * Created by LYF on 2017/9/15.
+ */
+public class Client {
+    public static void main(String args[]) {
+        try {
+            int portNum=4853;
+            String hostName="192.168.85.1";
+            String registryURL = "rmi://"+hostName+":"+portNum+"/hello";
+            ISay h = (ISay) Naming.lookup(registryURL);
+            System.out.println("结束查找");
+            String message = h.sayWhat("456465");
+            System.out.println("HelloClient:"+message);
+        }
+        catch (Exception e) {
+            System.out.println("HelloClient异常!"+e);
+        }
+
+    }
+}
